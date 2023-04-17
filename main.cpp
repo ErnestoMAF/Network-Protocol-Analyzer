@@ -6,34 +6,37 @@
 #include <iomanip>
 #include <iostream>
 
+#define SW 40
 using namespace std;
 
-int printNbytes(FILE *archivo,int start, int num_loops);
+int printNbytes(FILE *archivo,int start, int num_loops, char separator);
 void bytesInArray(unsigned char palabra, unsigned char *arr, int pos);
 int byteArrayToDecimal(int start, int end, unsigned char *arr);
 string precedence(int value);
 void protocol(int option,bool jmp,FILE *archivo,unsigned char *arr);
 
 int main(){
+    string ip;
+    stringstream ss;
     int i,aux_code,aux_protocol;
     unsigned char palabra,bits16[16]={};
     setlocale(LC_ALL,"");
     FILE *archivo;
     
-    if ((archivo = fopen("Test Packages\\ethernet_ipv4_icmp.bin","rb+")) == NULL)
+    if ((archivo = fopen("Test Packages\\ethernet_arp_reply.bin","rb+")) == NULL)
         cout<<"Error en la apertura. Es posible que el fichero no exista \n";
     else{
-        cout<<"\n"<<setw(28)<<"ETHERNET \n"<<endl;
+        cout<<"\n"<<setw(35)<<"ETHERNET \n"<<endl;
 
-        cout<<left<<setw(25)<<"Dirección MAC origen:"<<setw(5)<<"";
-        fseek(archivo,printNbytes(archivo,ftell(archivo),6),SEEK_SET);
+        cout<<left<<setw(SW)<<"Dirección MAC origen:"<<setw(5)<<"";
+        fseek(archivo,printNbytes(archivo,ftell(archivo),6,':'),SEEK_SET);
 
-        cout<<endl<<left<<setw(25)<<"Dirección MAC destino:"<<setw(5)<<"";
-        printNbytes(archivo,ftell(archivo),6);
+        cout<<endl<<left<<setw(SW)<<"Dirección MAC destino:"<<setw(5)<<"";
+        printNbytes(archivo,ftell(archivo),6,':');
 
         fseek(archivo,13, SEEK_SET);
         palabra=fgetc(archivo);
-        cout<<endl<<left<<setw(25)<<"Tipo de código:"<<setw(5)<<"";
+        cout<<endl<<left<<setw(SW)<<"Tipo de código:"<<setw(5)<<"";
         printf ("%02x - ",palabra);
 
         aux_code = palabra;
@@ -41,68 +44,169 @@ int main(){
             case 0:
             	cout<<"IPv4"<<endl;
                 palabra=fgetc(archivo);
-                cout<<left<<setw(25)<<"Versión:"<<setw(5)<<"";
+                cout<<left<<setw(SW)<<"Versión:"<<setw(5)<<"";
                 bytesInArray(palabra,bits16,7);cout<<byteArrayToDecimal(4,7,bits16)<<endl;
-            	cout<<left<<setw(25)<<"Tamaño de Cabecera:"<<setw(5)<<"";
+            	cout<<left<<setw(SW)<<"Tamaño de Cabecera:"<<setw(5)<<"";
                 cout<<byteArrayToDecimal(0,3,bits16)<< " palabras"<<endl;
                 palabra=fgetc(archivo);
-                cout<<left<<setw(25)<<"Tipo de Servicio:"<<endl;
+                cout<<left<<setw(SW)<<"Tipo de Servicio:"<<endl;
                 bytesInArray(palabra,bits16,7);
-                cout<<right<<setw(25)<<"Prioridad:"<<setw(5)<<"";
+                cout<<right<<setw(SW)<<"Prioridad:"<<setw(5)<<"";
                 cout<<precedence(byteArrayToDecimal(5,7,bits16))<<endl;
-                cout<<right<<setw(25)<<"Retardo:"<<setw(5)<<"";
+                cout<<right<<setw(SW)<<"Retardo:"<<setw(5)<<"";
                 if(bits16[4]=='0')
                     cout<<"0 - Normal"<<endl;
                 else
                     cout<<"1 - Bajo"<<endl;
-                cout<<right<<setw(25)<<"Rendimiento:"<<setw(5)<<"";
+                cout<<right<<setw(SW)<<"Rendimiento:"<<setw(5)<<"";
                 if(bits16[3]=='0')
                     cout<<"0 - Normal"<<endl;
                 else
                     cout<<"1 - Alto"<<endl;
-                cout<<right<<setw(25)<<"Fiabilidad:"<<setw(5)<<"";
+                cout<<right<<setw(SW)<<"Fiabilidad:"<<setw(5)<<"";
                 if(bits16[2]=='0')
                     cout<<"0 - Normal"<<endl;
                 else
                     cout<<"1 - Alta"<<endl;
                 palabra=fgetc(archivo);bytesInArray(palabra,bits16,15);
                 palabra=fgetc(archivo);bytesInArray(palabra,bits16,7);
-                cout<<left<<setw(25)<<"Longitud Total:"<<setw(5)<<"";
+                cout<<left<<setw(SW)<<"Longitud Total:"<<setw(5)<<"";
                 cout<<byteArrayToDecimal(0,15,bits16)<<" bytes" <<endl;
                 palabra=fgetc(archivo);bytesInArray(palabra,bits16,15);
                 palabra=fgetc(archivo);bytesInArray(palabra,bits16,7);
-                cout<<left<<setw(25)<<"Identificador:"<<setw(5)<<"";
+                cout<<left<<setw(SW)<<"Identificador:"<<setw(5)<<"";
                 cout<<byteArrayToDecimal(0,15,bits16)<<endl;
                 palabra=fgetc(archivo);bytesInArray(palabra,bits16,15);
                 palabra=fgetc(archivo);bytesInArray(palabra,bits16,7);
-                cout<<left<<setw(25)<<"Banderas:"<<setw(5)<<""<<endl;
-                cout<<right<<setw(25)<<"Reservado:"<<setw(5)<<"";
+                cout<<left<<setw(SW)<<"Banderas:"<<setw(5)<<""<<endl;
+                cout<<right<<setw(SW)<<"Reservado:"<<setw(5)<<"";
                 cout<<bits16[15]<<endl;
-                cout<<right<<setw(25)<<"Divisibilidad:"<<setw(5)<<"";
+                cout<<right<<setw(SW)<<"Divisibilidad:"<<setw(5)<<"";
                 if(bits16[14]=='0')
                     cout<<"0 - No divisible"<<endl;
                 else
                     cout<<"1 - Divisible (DF)"<<endl;
-                cout<<right<<setw(25)<<"Último fragmento:"<<setw(5)<<"";
+                cout<<right<<setw(SW)<<"Último fragmento:"<<setw(5)<<"";
                 if(bits16[13]=='0')
                     cout<<"0 - Último fragmento"<<endl;
                 else
                     cout<<"1 - Fragmento intermedio (MF)"<<endl;
-                cout<<left<<setw(25)<<"Posición de Fragmento:"<<setw(5)<<"";
+                cout<<left<<setw(SW)<<"Posición de Fragmento:"<<setw(5)<<"";
                 cout<<byteArrayToDecimal(0,12,bits16)<<endl;
                 palabra=fgetc(archivo);bytesInArray(palabra,bits16,7);
-                cout<<right<<setw(25)<<"Tiempo de Vida:"<<setw(5)<<"";
+                cout<<right<<setw(SW)<<"Tiempo de Vida:"<<setw(5)<<"";
                 cout<<byteArrayToDecimal(0,7,bits16)<<endl;
                 palabra=fgetc(archivo);bytesInArray(palabra,bits16,7);
-                cout<<right<<setw(25)<<"Protocolo:"<<setw(5)<<"";
+                cout<<right<<setw(SW)<<"Protocolo:"<<setw(5)<<"";
                 aux_protocol=byteArrayToDecimal(0,7,bits16);
                 protocol(aux_protocol,true,archivo,bits16);
                 break;
             case 6:
-            	cout<<"ARP"<<endl;
-            	break;
             case 53:
-            	cout<<"RARP"<<endl;
+                if(aux_code == 6)
+                    cout<<"ARP"<<endl;
+                else
+                    cout<<"RARP"<<endl;
+                fseek(archivo,14, SEEK_SET);
+                palabra=fgetc(archivo);bytesInArray(palabra,bits16,15);
+                palabra=fgetc(archivo);bytesInArray(palabra,bits16,7);
+                cout<<left<<setw(SW)<<"Tipo de hardware:"<<setw(5)<<"";
+                cout<<byteArrayToDecimal(0,15,bits16);
+                switch(byteArrayToDecimal(0,15,bits16)){
+                    case 1:
+                        cout<<" - Ethernet (10 Mb)"<<endl;
+                        break;
+                    case 6:
+                        cout<<" - IEEE 802 Networks"<<endl;
+                        break;
+                    case 7:
+                        cout<<" - ARCNET"<<endl;
+                        break;
+                    case 15:
+                        cout<<" - Frame Relay"<<endl;
+                        break;
+                    case 16:
+                        cout<<" - Asynchronous Transfer Mode (ATM)"<<endl;
+                        break;
+                    case 17:
+                        cout<<" - HDLC"<<endl;
+                        break;
+                    case 18:
+                        cout<<" - Fibre Channel"<<endl;
+                        break;
+                    case 19:
+                        cout<<" - Asynchronous Transfer Mode (ATM)"<<endl;
+                        break;
+                    case 20:
+                        cout<<" - Serial Line"<<endl;
+                        break;
+                    default:
+                        cout<<" - Other."<<endl;
+                }
+                palabra=fgetc(archivo);bytesInArray(palabra,bits16,15);
+                palabra=fgetc(archivo);bytesInArray(palabra,bits16,7);
+                cout<<left<<setw(SW)<<"Tipo de protocolo:"<<setw(5)<<"";
+                cout<<byteArrayToDecimal(0,15,bits16);
+                switch(byteArrayToDecimal(0,15,bits16)){
+                    case 2048:
+                        cout<<" - IPv4"<<endl;
+                        break;
+                    case 2054:
+                        cout<<" - ARP"<<endl;
+                        break;
+                    case 32821:
+                        cout<<" - RARP"<<endl;
+                        break;
+                    case 34525:
+                        cout<<" - IPv6"<<endl;
+                        break;
+                    default:
+                        cout<<"Error. Tipo de protocolo"<<endl;
+                }
+                palabra=fgetc(archivo);bytesInArray(palabra,bits16,7);
+                cout<<left<<setw(SW)<<"Longitud de la dirección de hardware:"<<setw(5)<<"";
+                cout<<byteArrayToDecimal(0,7,bits16)<<" bytes"<<endl;
+                palabra=fgetc(archivo);bytesInArray(palabra,bits16,7);
+                cout<<left<<setw(SW)<<"Longitud de la dirección de protocolo:"<<setw(5)<<"";
+                cout<<byteArrayToDecimal(0,7,bits16)<<" bytes"<<endl;
+                palabra=fgetc(archivo);bytesInArray(palabra,bits16,15);
+                palabra=fgetc(archivo);bytesInArray(palabra,bits16,7);
+                cout<<left<<setw(SW)<<"Código de operación:"<<setw(5)<<"";
+                cout<<byteArrayToDecimal(0,15,bits16);
+                switch(byteArrayToDecimal(0,15,bits16)){
+                	case 1:
+                		cout<<" - Solicitud ARP"<<endl;
+                		break;
+                	case 2:
+                		cout<<" - Respuesta ARP"<<endl;
+                		break;
+                	case 3:
+                		cout<<" - Solicitud RARP"<<endl;
+                		break;
+                	case 4:
+                		cout<<" - Respuesta RARP"<<endl;
+                		break;
+                	default:
+                		cout<<"Error. Código de operación."<<endl;
+                		
+				}
+                palabra = fgetc(archivo);
+                cout<<left<<setw(SW)<<"Dirección hardware del emisor (MAC):"<<setw(5)<<"";
+                fseek(archivo,printNbytes(archivo,ftell(archivo),6,':'),SEEK_SET);
+                cout<<endl<<left<<setw(SW)<<"Dirección IP del emisor:"<<setw(5)<<"";
+	            for(i=0;i<4;i++){
+	            	palabra=fgetc(archivo);bytesInArray(palabra,bits16,7);
+	                cout<<byteArrayToDecimal(0,7,bits16)<<".";
+	            }            
+                palabra = fgetc(archivo);
+                cout<<endl<<left<<setw(SW)<<"Dirección hardware del receptor (MAC):"<<setw(5)<<"";
+                fseek(archivo,printNbytes(archivo,ftell(archivo),6,':'),SEEK_SET);    
+                cout<<endl<<left<<setw(SW)<<"Dirección IP del receptor:"<<setw(5)<<"";
+	            for(i=0;i<4;i++){
+	            	palabra=fgetc(archivo);bytesInArray(palabra,bits16,7);
+	                cout<<byteArrayToDecimal(0,7,bits16)<<".";
+	            }     
+
             	break;
             case 221:
             	cout<<"IPv6"<<endl;
@@ -122,13 +226,13 @@ int main(){
 }
 
 
-int printNbytes(FILE *archivo,int start, int num_loops){
+int printNbytes(FILE *archivo,int start, int num_loops,char separator){
     unsigned char palabra;
     fseek(archivo,start, SEEK_SET);
 
     for(int i=0;i<num_loops;i++){
         palabra = fgetc(archivo);
-        printf("%02x:",palabra);
+        printf("%02x%c",palabra,separator);
     }
    
     return ftell(archivo);
@@ -198,7 +302,7 @@ void protocol(int option,bool jmp,FILE *archivo,unsigned char *arr){
                 cout <<"ICMP v4"<<endl;
                 fseek(archivo,34,SEEK_SET);
                 palabra = fgetc(archivo);bytesInArray(palabra,arr,7);
-                cout<<right<<setw(25)<<"Tipo:"<<setw(5)<<"";
+                cout<<right<<setw(SW)<<"Tipo:"<<setw(5)<<"";
                 value = byteArrayToDecimal(0,7,arr);
                 cout<<value;
                 switch(value){
@@ -245,7 +349,7 @@ void protocol(int option,bool jmp,FILE *archivo,unsigned char *arr){
                         cout<<"Error. Tipo"<<endl;
                 }
                 palabra = fgetc(archivo);bytesInArray(palabra,arr,7);
-                cout<<right<<setw(25)<<"Código:"<<setw(5)<<"";
+                cout<<right<<setw(SW)<<"Código:"<<setw(5)<<"";
                 value = byteArrayToDecimal(0,7,arr);
                 cout<<value;
                 switch(value){
@@ -292,8 +396,8 @@ void protocol(int option,bool jmp,FILE *archivo,unsigned char *arr){
                         cout<<"Error. Código."<<endl;
                 }
                 palabra = fgetc(archivo);
-                cout<<right<<setw(25)<<"Checksum:"<<setw(5)<<"";
-                printNbytes(archivo,ftell(archivo),2);
+                cout<<right<<setw(SW)<<"Checksum:"<<setw(5)<<"";
+                printNbytes(archivo,ftell(archivo),2,' ');
             }
             break;
         case 6:
