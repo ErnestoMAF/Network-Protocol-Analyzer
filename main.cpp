@@ -23,7 +23,7 @@ int main(){
     setlocale(LC_ALL,"");
     FILE *archivo;
     
-    if ((archivo = fopen("Test Packages\\ethernet_ipv6_nd.bin","rb+")) == NULL)
+    if ((archivo = fopen("Test Packages\\ipv6_icmpv6_pong.bin","rb+")) == NULL)
         cout<<"Error en la apertura. Es posible que el fichero no exista \n";
     else{
         cout<<"\n"<<setw(35)<<"ETHERNET \n"<<endl;
@@ -94,10 +94,10 @@ int main(){
                 cout<<left<<setw(SW)<<"Posición de Fragmento:"<<setw(5)<<"";
                 cout<<byteArrayToDecimal(0,12,bits16)<<endl;
                 palabra=fgetc(archivo);bytesInArray(palabra,bits16,7);
-                cout<<right<<setw(SW)<<"Tiempo de Vida:"<<setw(5)<<"";
+                cout<<left<<setw(SW)<<"Tiempo de Vida:"<<setw(5)<<"";
                 cout<<byteArrayToDecimal(0,7,bits16)<<endl;
                 palabra=fgetc(archivo);bytesInArray(palabra,bits16,7);
-                cout<<right<<setw(SW)<<"Protocolo:"<<setw(5)<<"";
+                cout<<left<<setw(SW)<<"Protocolo:"<<setw(5)<<"";
                 aux_protocol=byteArrayToDecimal(0,7,bits16);
                 protocol(aux_protocol,true,archivo,bits16);
                 break;
@@ -190,7 +190,6 @@ int main(){
                 		cout<<"Error. Código de operación."<<endl;
                 		
 				}
-                palabra = fgetc(archivo);
                 cout<<left<<setw(SW)<<"Dirección hardware del emisor (MAC):"<<setw(5)<<"";
                 fseek(archivo,printNbytes(archivo,ftell(archivo),6,':'),SEEK_SET);
                 cout<<endl<<left<<setw(SW)<<"Dirección IP del emisor:"<<setw(5)<<"";
@@ -198,7 +197,6 @@ int main(){
 	            	palabra=fgetc(archivo);bytesInArray(palabra,bits16,7);
 	                cout<<byteArrayToDecimal(0,7,bits16)<<".";
 	            }            
-                palabra = fgetc(archivo);
                 cout<<endl<<left<<setw(SW)<<"Dirección hardware del receptor (MAC):"<<setw(5)<<"";
                 fseek(archivo,printNbytes(archivo,ftell(archivo),6,':'),SEEK_SET);    
                 cout<<endl<<left<<setw(SW)<<"Dirección IP del receptor:"<<setw(5)<<"";
@@ -241,15 +239,17 @@ int main(){
                 cout<<byteArrayToDecimal(0,15,bits16)<< " bytes"<<endl;
                 palabra=fgetc(archivo);bytesInArray(palabra,bits16,7);
                 cout<<left<<setw(SW)<<"Encabezado siguiente:"<<setw(5)<<"";
-                protocol(byteArrayToDecimal(0,7,bits16),false,archivo,bits16);
+                aux_protocol = byteArrayToDecimal(0,7,bits16);
+                protocol(aux_protocol,false,archivo,bits16);
                 palabra=fgetc(archivo);bytesInArray(palabra,bits16,7);
                 cout<<left<<setw(SW)<<"Límite de salto :"<<setw(5)<<"";
                 cout<<byteArrayToDecimal(0,7,bits16);
-                palabra = fgetc(archivo);
                 cout<<endl<<left<<setw(SW)<<"Dirección de origen:"<<setw(5)<<"";
                 fseek(archivo,printNbytes(archivo,ftell(archivo),16,':'),SEEK_SET);   
                 cout<<endl<<left<<setw(SW)<<"Dirección de destino:"<<setw(5)<<"";
-                printNbytes(archivo,ftell(archivo),16,':'); 
+                printNbytes(archivo,ftell(archivo),16,':');
+                cout<<endl;
+                protocol(aux_protocol,true,archivo,bits16);
             	break;
             default:
                 aux_code = -1;
@@ -343,7 +343,7 @@ void protocol(int option,bool jmp,FILE *archivo,unsigned char *arr){
                 cout <<"ICMP v4"<<endl;
                 fseek(archivo,34,SEEK_SET);
                 palabra = fgetc(archivo);bytesInArray(palabra,arr,7);
-                cout<<right<<setw(SW)<<"Tipo:"<<setw(5)<<"";
+                cout<<left<<setw(SW)<<"Tipo:"<<setw(5)<<"";
                 value = byteArrayToDecimal(0,7,arr);
                 cout<<value;
                 switch(value){
@@ -390,7 +390,7 @@ void protocol(int option,bool jmp,FILE *archivo,unsigned char *arr){
                         cout<<"Error. Tipo"<<endl;
                 }
                 palabra = fgetc(archivo);bytesInArray(palabra,arr,7);
-                cout<<right<<setw(SW)<<"Código:"<<setw(5)<<"";
+                cout<<left<<setw(SW)<<"Código:"<<setw(5)<<"";
                 value = byteArrayToDecimal(0,7,arr);
                 cout<<value;
                 switch(value){
@@ -436,8 +436,7 @@ void protocol(int option,bool jmp,FILE *archivo,unsigned char *arr){
                     default:
                         cout<<"Error. Código."<<endl;
                 }
-                palabra = fgetc(archivo);
-                cout<<right<<setw(SW)<<"Checksum:"<<setw(5)<<"";
+                cout<<left<<setw(SW)<<"Checksum:"<<setw(5)<<"";
                 printNbytes(archivo,ftell(archivo),2,' ');
             }
             break;
@@ -452,6 +451,125 @@ void protocol(int option,bool jmp,FILE *archivo,unsigned char *arr){
         case 58:
             if(!jmp)
                 cout <<"ICMP v6"<<endl;
+            else{
+                fseek(archivo,54,SEEK_SET);
+                palabra = fgetc(archivo);bytesInArray(palabra,arr,7);
+                cout<<left<<setw(SW)<<"Tipo:"<<setw(5)<<"";
+                value = byteArrayToDecimal(0,7,arr);
+                cout<<value;
+                if(value>127)
+                    cout<<" - Mensaje Informativo"<<endl;
+                else
+                    cout<<" - Mensaje de Error"<<endl;
+                palabra = fgetc(archivo);bytesInArray(palabra,arr,7);
+                cout<<left<<setw(SW)<<"Código:"<<setw(5)<<"";
+                cout<<byteArrayToDecimal(0,7,arr);
+                switch(value){
+                    case 1:
+                        switch(byteArrayToDecimal(0,7,arr)){
+                            case 0:
+                                cout<<" - No existe ruta destino"<<endl;
+                                break;
+                            case 1:
+                                cout<<" - Comunicación con el destino administrativamente prohibida"<<endl;
+                                break;
+                            case 2:
+                                cout<<" - No asignado"<<endl;
+                                break;
+                            case 3:
+                                cout<<" - Dirección inalcanzable"<<endl;
+                                break;
+                            default:
+                                cout<<" Error. Código ICMPv6."<<endl;
+                        }
+                        break;
+                    case 2:
+                        if(byteArrayToDecimal(0,7,arr)!=0)
+                            cout<<" Error. Código ICMPv6.";
+                        cout<<endl;
+                        break;
+                    case 3:
+                        switch(byteArrayToDecimal(0,7,arr)){
+                            case 0:
+                                cout<<" - El límite del salto excedido"<<endl;
+                                break;
+                            case 1:
+                                cout<<" - Tiempo de reensamble de fragmento excedido"<<endl;
+                                break;
+                            default:
+                                cout<<"Error. Código ICMPv6."<<endl;
+                        }
+                        break;
+                    case 4:
+                        switch(byteArrayToDecimal(0,7,arr)){
+                            case 0:
+                                cout<<" - El campo del encabezado erróneo encontró"<<endl;
+                                break;
+                            case 1:
+                                cout<<" - El tipo siguiente desconocido del encabezado encontró"<<endl;
+                                break;
+                            case 2:
+                                cout<<" - Opción desconocida del IPv6 encontrada"<<endl;
+                                break;
+                            default:
+                                cout<<"Error. Código ICMPv6."<<endl;
+                        }
+                        break;
+                    case 128:
+                    case 129:
+                    case 133:
+                    case 134:
+                    case 135:
+                    case 136:
+                    case 137:
+                        if(byteArrayToDecimal(0,7,arr)!=0)
+                            cout<<" Error. Código ICMPv6.";
+                        cout<<endl;
+                        break;
+                    default:
+                        cout<<" Error. No existe ese código ICMPv6."<<endl;
+                }
+                cout<<left<<setw(SW)<<"Mensaje:"<<setw(5)<<"";
+                switch(value){
+                    case 1:
+                        cout<<"Mensaje de destino inalcanzable"<<endl;
+                        break;
+                    case 2:
+                        cout<<"Mensaje de paquete demasiado grande"<<endl;
+                        break;
+                    case 3:
+                        cout<<"Time Exceeded Message"<<endl;
+                        break;
+                    case 4:
+                        cout<<"Mensaje de problema de parámetro"<<endl;
+                        break;
+                    case 128:
+                        cout<<"Mensaje del pedido de eco"<<endl;
+                        break;
+                    case 129:
+                        cout<<"Mensaje de respuesta de eco"<<endl;
+                        break;
+                    case 133:
+                        cout<<"Mensaje de solicitud del router"<<endl;
+                        break;
+                    case 134:
+                        cout<<"Mensaje de anuncio del router"<<endl;
+                        break;
+                    case 135:
+                        cout<<"Mensaje de solicitud vecino"<<endl;
+                        break;
+                    case 136:
+                        cout<<"Mensaje de anuncio de vecino"<<endl;
+                        break;
+                    case 137:
+                        cout<<"Reoriente el mensaje"<<endl;
+                        break;
+                    default:
+                        cout<<"Error. No existe ese código ICMPv6."<<endl;
+                }
+                cout<<left<<setw(SW)<<"Checksum:"<<setw(5)<<"";
+                printNbytes(archivo,ftell(archivo),2,' ');
+            }
             break;
         case 118:
             if(!jmp)
@@ -462,6 +580,6 @@ void protocol(int option,bool jmp,FILE *archivo,unsigned char *arr){
                 cout <<"SMP"<<endl;
             break;
         default:
-            cout <<"Error. No existe protocolo."<<endl;
+            cout<<"No existe Protocolo"<<endl;
     }
 }
