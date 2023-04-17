@@ -19,11 +19,11 @@ int main(){
     string ip;
     stringstream ss;
     int i,aux_code,aux_protocol;
-    unsigned char palabra,bits16[16]={};
+    unsigned char palabra,bits16[32]={};
     setlocale(LC_ALL,"");
     FILE *archivo;
     
-    if ((archivo = fopen("Test Packages\\ethernet_arp_reply.bin","rb+")) == NULL)
+    if ((archivo = fopen("Test Packages\\ethernet_ipv6_nd.bin","rb+")) == NULL)
         cout<<"Error en la apertura. Es posible que el fichero no exista \n";
     else{
         cout<<"\n"<<setw(35)<<"ETHERNET \n"<<endl;
@@ -206,10 +206,50 @@ int main(){
 	            	palabra=fgetc(archivo);bytesInArray(palabra,bits16,7);
 	                cout<<byteArrayToDecimal(0,7,bits16)<<".";
 	            }     
-
             	break;
             case 221:
             	cout<<"IPv6"<<endl;
+                palabra=fgetc(archivo);bytesInArray(palabra,bits16,31);
+                palabra=fgetc(archivo);bytesInArray(palabra,bits16,23);
+                palabra=fgetc(archivo);bytesInArray(palabra,bits16,15);
+                palabra=fgetc(archivo);bytesInArray(palabra,bits16,7);
+                cout<<left<<setw(SW)<<"Versión:"<<setw(5)<<"";
+                cout<<byteArrayToDecimal(28,31,bits16)<<endl;
+                cout<<left<<setw(SW)<<"Clase de Tráfico:"<<endl;
+                cout<<right<<setw(SW)<<"Prioridad:"<<setw(5)<<"";
+                cout<<precedence(byteArrayToDecimal(25,27,bits16))<<endl;
+                cout<<right<<setw(SW)<<"Retardo:"<<setw(5)<<"";
+                if(bits16[24]=='0')
+                    cout<<"0 - Normal"<<endl;
+                else
+                    cout<<"1 - Bajo"<<endl;
+                cout<<right<<setw(SW)<<"Rendimiento:"<<setw(5)<<"";
+                if(bits16[23]=='0')
+                    cout<<"0 - Normal"<<endl;
+                else
+                    cout<<"1 - Alto"<<endl;
+                cout<<right<<setw(SW)<<"Fiabilidad:"<<setw(5)<<"";
+                if(bits16[22]=='0')
+                    cout<<"0 - Normal"<<endl;
+                else
+                    cout<<"1 - Alta"<<endl; 
+                cout<<left<<setw(SW)<<"Etiqueta de flujo:"<<setw(5)<<"";
+                cout<<byteArrayToDecimal(0,19,bits16)<<endl;  
+                palabra=fgetc(archivo);bytesInArray(palabra,bits16,15);
+                palabra=fgetc(archivo);bytesInArray(palabra,bits16,7);      
+                cout<<left<<setw(SW)<<"Tamaño de datos:"<<setw(5)<<"";
+                cout<<byteArrayToDecimal(0,15,bits16)<< " bytes"<<endl;
+                palabra=fgetc(archivo);bytesInArray(palabra,bits16,7);
+                cout<<left<<setw(SW)<<"Encabezado siguiente:"<<setw(5)<<"";
+                protocol(byteArrayToDecimal(0,7,bits16),false,archivo,bits16);
+                palabra=fgetc(archivo);bytesInArray(palabra,bits16,7);
+                cout<<left<<setw(SW)<<"Límite de salto :"<<setw(5)<<"";
+                cout<<byteArrayToDecimal(0,7,bits16);
+                palabra = fgetc(archivo);
+                cout<<endl<<left<<setw(SW)<<"Dirección de origen:"<<setw(5)<<"";
+                fseek(archivo,printNbytes(archivo,ftell(archivo),16,':'),SEEK_SET);   
+                cout<<endl<<left<<setw(SW)<<"Dirección de destino:"<<setw(5)<<"";
+                printNbytes(archivo,ftell(archivo),16,':'); 
             	break;
             default:
                 aux_code = -1;
@@ -246,9 +286,10 @@ void bytesInArray(unsigned char palabra, unsigned char *arr, int pos){
 int byteArrayToDecimal(int start, int end, unsigned char *arr){
     int sum = 0,cont = 0;
 
-    for(int i=start;i<end;i++){
-        if(*(arr+i)=='1')
+    for(int i=start;i<=end;i++){
+        if(*(arr+i)=='1'){
             sum += pow(2,cont);
+        }
         cont++;
     }
 
