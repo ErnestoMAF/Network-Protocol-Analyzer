@@ -12,10 +12,10 @@ int printNbytes(FILE *archivo,int start, int num_loops);
 void bytesInArray(unsigned char palabra, unsigned char *arr, int pos);
 int byteArrayToDecimal(int start, int end, unsigned char *arr);
 string precedence(int value);
-void protocol(int option,bool jmp);
+void protocol(int option,bool jmp,FILE *archivo,unsigned char *arr);
 
 int main(){
-    int i,aux_code;
+    int i,aux_code,aux_protocol;
     unsigned char palabra,bits16[16]={};
     setlocale(LC_ALL,"");
     FILE *archivo;
@@ -83,7 +83,7 @@ int main(){
                     cout<<"0 - No divisible"<<endl;
                 else
                     cout<<"1 - Divisible (DF)"<<endl;
-                cout<<right<<setw(25)<<"Ultimo fragmento:"<<setw(5)<<"";
+                cout<<right<<setw(25)<<"Último fragmento:"<<setw(5)<<"";
                 if(bits16[13]=='0')
                     cout<<"0 - Último fragmento"<<endl;
                 else
@@ -95,7 +95,8 @@ int main(){
                 cout<<byteArrayToDecimal(0,7,bits16)<<endl;
                 palabra=fgetc(archivo);bytesInArray(palabra,bits16,7);
                 cout<<right<<setw(25)<<"Protocolo:"<<setw(5)<<"";
-                protocol(byteArrayToDecimal(0,7,bits16),false);
+                aux_protocol=byteArrayToDecimal(0,7,bits16);
+                protocol(aux_protocol,true,archivo,bits16);
                 break;
             case 6:
             	cout<<"ARP"<<endl;
@@ -164,34 +165,136 @@ string precedence(int value){
             priority="010: Inmediato";
             break;
         case 3:
-            priority="011: Relampago";
+            priority="011: Relámpago";
             break;
         case 4:
-            priority="100: Invalidacion relampago";
+            priority="100: Invalidación relámpago";
             break;
         case 5:
             priority="101: Procesando llamada critica y de emergencia";
             break;
         case 6:
-            priority="110: Control de trabajo de Internet";
+            priority="110: Control de trabajo de internet";
             break;
         case 7:
-            priority="111: Control de Red"; 
+            priority="111: Control de red"; 
             break;
         default:
-            priority="Incorrecta";
+            priority="Error. Prioridad incorrecta.";
     }
 
     return priority;
 }
 
-void protocol(int option,bool jmp){
+void protocol(int option,bool jmp,FILE *archivo,unsigned char *arr){
     unsigned char palabra;
+    int value;
 
     switch(option){
         case 1:
             if(!jmp)
                 cout <<"ICMP v4"<<endl;
+            else{
+                cout <<"ICMP v4"<<endl;
+                fseek(archivo,34,SEEK_SET);
+                palabra = fgetc(archivo);bytesInArray(palabra,arr,7);
+                cout<<right<<setw(25)<<"Tipo:"<<setw(5)<<"";
+                value = byteArrayToDecimal(0,7,arr);
+                cout<<value;
+                switch(value){
+                    case 0:
+                        cout<<" - Respuesta de ECO"<<endl;
+                        break;
+                    case 3:
+                        cout<<" - Destino inaccesible"<<endl;
+                        break;
+                    case 4:
+                        cout<<" - Disminución de tráfico desde el origen"<<endl;
+                        break;
+                    case 5:
+                        cout<<" - Redireccionar - cambio de ruta"<<endl;
+                        break;
+                    case 8:
+                        cout<<" - Solicitud de ECO"<<endl;
+                        break;
+                    case 11:
+                        cout<<" - Tiempo excedido para un datagrama"<<endl;
+                        break;
+                    case 12:
+                        cout<<" - Problema de parámetros"<<endl;
+                        break;
+                    case 13:
+                        cout<<" - Solicitud de marca de tiempo"<<endl;
+                        break;
+                    case 14:
+                        cout<<" - Respuesta de marca de tiempo"<<endl;
+                        break;
+                    case 15:
+                        cout<<" - Solicitud de información - obsoleto-"<<endl;
+                        break;
+                    case 16:
+                        cout<<" - Respuesta de información - obsoleto-"<<endl;
+                        break;
+                    case 17:
+                        cout<<" - Solicitud de mascara de dirección"<<endl;
+                        break;
+                    case 18:
+                        cout<<" - Respuesta de mascara de dirección"<<endl;
+                        break;
+                    default:
+                        cout<<"Error. Tipo"<<endl;
+                }
+                palabra = fgetc(archivo);bytesInArray(palabra,arr,7);
+                cout<<right<<setw(25)<<"Código:"<<setw(5)<<"";
+                value = byteArrayToDecimal(0,7,arr);
+                cout<<value;
+                switch(value){
+                    case 0:
+                        cout<<" - No se puede llegar a la red"<<endl;
+                        break;
+                    case 1:
+                        cout<<" - No se puede llegar al host o aplicación de destino"<<endl;
+                        break;
+                    case 2:
+                        cout<<" - El destino no dispone del protocolo solicitados"<<endl;
+                        break;
+                    case 3:
+                        cout<<" - No se puede llegar al puerto destino o la aplicación destino no esta libre"<<endl;
+                        break;
+                    case 4:
+                        cout<<" - Se necesita aplicar fragmentación, para el flag correspondiente indica lo contrario"<<endl;
+                        break;
+                    case 5:
+                        cout<<" - La ruta de origen es correcta"<<endl;
+                        break;
+                    case 6:
+                        cout<<" - No se conoce la red destino"<<endl;
+                        break;
+                    case 7:
+                        cout<<" - No se conoce el host destino"<<endl;
+                        break;
+                    case 8:
+                        cout<<" - El host origen esta aislado"<<endl;
+                        break;
+                    case 9:
+                        cout<<" - La comunicación con la red destino esta prohibida por razones administrativas"<<endl;
+                        break;
+                    case 10:
+                        cout<<" - La comunicación con el host destino esta prohibida por razones administrativas"<<endl;
+                        break;
+                    case 11:
+                        cout<<" - No se puede llegar a la red de destino debido al tipo de servicio"<<endl;
+                        break;
+                    case 12:
+                        cout<<" - No se puede llegar a la host de destino debido al tipo de servicio"<<endl;
+                        break;
+                    default:
+                        cout<<"Error. Código."<<endl;
+                }
+                palabra = fgetc(archivo);
+                cout<<right<<setw(25)<<"Checksum:"<<setw(5)<<"";
+                printNbytes(archivo,ftell(archivo),2);
+            }
             break;
         case 6:
             if(!jmp)
