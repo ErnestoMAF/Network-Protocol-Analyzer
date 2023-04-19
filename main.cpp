@@ -23,7 +23,7 @@ int main(){
     setlocale(LC_ALL,"");
     FILE *archivo;
     
-    if ((archivo = fopen("Test Packages\\ipv6_icmpv6_pong.bin","rb+")) == NULL)
+    if ((archivo = fopen("Test Packages\\ethernet_ipv4_tcp.bin","rb+")) == NULL)
         cout<<"Error en la apertura. Es posible que el fichero no exista \n";
     else{
         cout<<"\n"<<setw(35)<<"ETHERNET \n"<<endl;
@@ -46,10 +46,10 @@ int main(){
                 palabra=fgetc(archivo);
                 cout<<left<<setw(SW)<<"Versión:"<<setw(5)<<"";
                 bytesInArray(palabra,bits16,7);cout<<byteArrayToDecimal(4,7,bits16)<<endl;
-            	cout<<left<<setw(SW)<<"Tamaño de Cabecera:"<<setw(5)<<"";
+            	cout<<left<<setw(SW)<<"Tamaño de cabecera:"<<setw(5)<<"";
                 cout<<byteArrayToDecimal(0,3,bits16)<< " palabras"<<endl;
                 palabra=fgetc(archivo);
-                cout<<left<<setw(SW)<<"Tipo de Servicio:"<<endl;
+                cout<<left<<setw(SW)<<"Tipo de servicio:"<<endl;
                 bytesInArray(palabra,bits16,7);
                 cout<<right<<setw(SW)<<"Prioridad:"<<setw(5)<<"";
                 cout<<precedence(byteArrayToDecimal(5,7,bits16))<<endl;
@@ -70,7 +70,7 @@ int main(){
                     cout<<"1 - Alta"<<endl;
                 palabra=fgetc(archivo);bytesInArray(palabra,bits16,15);
                 palabra=fgetc(archivo);bytesInArray(palabra,bits16,7);
-                cout<<left<<setw(SW)<<"Longitud Total:"<<setw(5)<<"";
+                cout<<left<<setw(SW)<<"Longitud total:"<<setw(5)<<"";
                 cout<<byteArrayToDecimal(0,15,bits16)<<" bytes" <<endl;
                 palabra=fgetc(archivo);bytesInArray(palabra,bits16,15);
                 palabra=fgetc(archivo);bytesInArray(palabra,bits16,7);
@@ -91,10 +91,10 @@ int main(){
                     cout<<"0 - Último fragmento"<<endl;
                 else
                     cout<<"1 - Fragmento intermedio (MF)"<<endl;
-                cout<<left<<setw(SW)<<"Posición de Fragmento:"<<setw(5)<<"";
+                cout<<left<<setw(SW)<<"Posición de fragmento:"<<setw(5)<<"";
                 cout<<byteArrayToDecimal(0,12,bits16)<<endl;
                 palabra=fgetc(archivo);bytesInArray(palabra,bits16,7);
-                cout<<left<<setw(SW)<<"Tiempo de Vida:"<<setw(5)<<"";
+                cout<<left<<setw(SW)<<"Tiempo de vida:"<<setw(5)<<"";
                 cout<<byteArrayToDecimal(0,7,bits16)<<endl;
                 palabra=fgetc(archivo);bytesInArray(palabra,bits16,7);
                 cout<<left<<setw(SW)<<"Protocolo:"<<setw(5)<<"";
@@ -213,7 +213,7 @@ int main(){
                 palabra=fgetc(archivo);bytesInArray(palabra,bits16,7);
                 cout<<left<<setw(SW)<<"Versión:"<<setw(5)<<"";
                 cout<<byteArrayToDecimal(28,31,bits16)<<endl;
-                cout<<left<<setw(SW)<<"Clase de Tráfico:"<<endl;
+                cout<<left<<setw(SW)<<"Clase de tráfico:"<<endl;
                 cout<<right<<setw(SW)<<"Prioridad:"<<setw(5)<<"";
                 cout<<precedence(byteArrayToDecimal(25,27,bits16))<<endl;
                 cout<<right<<setw(SW)<<"Retardo:"<<setw(5)<<"";
@@ -443,6 +443,31 @@ void protocol(int option,bool jmp,FILE *archivo,unsigned char *arr){
         case 6:
             if(!jmp)
                 cout <<"TCP"<<endl;
+            else{
+                cout <<"TCP"<<endl;
+                fseek(archivo,34,SEEK_SET);
+                palabra=fgetc(archivo);bytesInArray(palabra,arr,15);
+                palabra=fgetc(archivo);bytesInArray(palabra,arr,7);      
+                cout<<left<<setw(SW)<<"Puerto origen:"<<setw(5)<<"";
+                cout<<byteArrayToDecimal(0,15,arr)<<endl;
+                palabra=fgetc(archivo);bytesInArray(palabra,arr,15);
+                palabra=fgetc(archivo);bytesInArray(palabra,arr,7);      
+                cout<<left<<setw(SW)<<"Puerto destino:"<<setw(5)<<"";
+                cout<<byteArrayToDecimal(0,15,arr)<<endl;
+                palabra=fgetc(archivo);bytesInArray(palabra,arr,31);
+                palabra=fgetc(archivo);bytesInArray(palabra,arr,23);
+                palabra=fgetc(archivo);bytesInArray(palabra,arr,15);
+                palabra=fgetc(archivo);bytesInArray(palabra,arr,7);      
+                cout<<left<<setw(SW)<<"Número de secuencia:"<<setw(5)<<"";
+                cout<<byteArrayToDecimal(0,15,arr)<<endl;
+                palabra=fgetc(archivo);bytesInArray(palabra,arr,31);
+                palabra=fgetc(archivo);bytesInArray(palabra,arr,23);
+                palabra=fgetc(archivo);bytesInArray(palabra,arr,15);
+                palabra=fgetc(archivo);bytesInArray(palabra,arr,7);      
+                cout<<left<<setw(SW)<<"Nsúmero de acuse de recibo:"<<setw(5)<<"";
+                cout<<byteArrayToDecimal(0,15,arr)<<endl;
+
+            }
             break;               
         case 17:
             if(!jmp)
