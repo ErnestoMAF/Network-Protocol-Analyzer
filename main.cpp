@@ -24,7 +24,7 @@ int main(){
     setlocale(LC_ALL,"");
     FILE *archivo;
 
-    if ((archivo = fopen("Test Packages\\ethernet_ipv4_tcp.bin","rb+")) == NULL)
+    if ((archivo = fopen("Test Packages\\ethernet_ipv4_udp_dns.bin","rb+")) == NULL)
         cout<<"Error en la apertura. Es posible que el fichero no exista \n";
     else{
         cout<<"\n"<<setw(35)<<"ETHERNET \n"<<endl;
@@ -527,7 +527,7 @@ void protocol(int option,bool jmp,FILE *archivo,unsigned char *arr){
                 cout<<left<<setw(SW)<<"Tamaño de ventana:"<<setw(5)<<"";
                 cout<<byteArrayToDecimal(0,15,arr)<< " bytes"<<endl;
                 cout<<left<<setw(SW)<<"Checksum:"<<setw(5)<<"";
-                printNbytes(archivo,ftell(archivo),2,' ');
+                fseek(archivo,printNbytes(archivo,ftell(archivo),2,' '),SEEK_SET);
                 palabra=fgetc(archivo);bytesInArray(palabra,arr,15);
                 palabra=fgetc(archivo);bytesInArray(palabra,arr,7);
                 cout<<endl<<left<<setw(SW)<<"Puntero Urgente:"<<setw(5)<<"";
@@ -538,6 +538,26 @@ void protocol(int option,bool jmp,FILE *archivo,unsigned char *arr){
         case 17:
             if(!jmp)
                 cout <<"UDP"<<endl;
+            else{
+                cout <<"UDP"<<endl;
+                fseek(archivo,34,SEEK_SET);
+                palabra=fgetc(archivo);bytesInArray(palabra,arr,15);
+                palabra=fgetc(archivo);bytesInArray(palabra,arr,7);
+                cout<<left<<setw(SW)<<"Puerto origen:"<<setw(5)<<"";
+                cout<<byteArrayToDecimal(0,15,arr);
+                ports(byteArrayToDecimal(0,15,arr));
+                palabra=fgetc(archivo);bytesInArray(palabra,arr,15);
+                palabra=fgetc(archivo);bytesInArray(palabra,arr,7);
+                cout<<left<<setw(SW)<<"Puerto destino:"<<setw(5)<<"";
+                cout<<byteArrayToDecimal(0,15,arr);
+                ports(byteArrayToDecimal(0,15,arr));
+                palabra=fgetc(archivo);bytesInArray(palabra,arr,15);
+                palabra=fgetc(archivo);bytesInArray(palabra,arr,7);
+                cout<<left<<setw(SW)<<"Longitud:"<<setw(5)<<"";
+                cout<<byteArrayToDecimal(0,15,arr);
+                cout<<endl<<left<<setw(SW)<<"Checksum:"<<setw(5)<<"";
+                printNbytes(archivo,ftell(archivo),2,' ');
+            }
             break;
         case 58:
             if(!jmp)
